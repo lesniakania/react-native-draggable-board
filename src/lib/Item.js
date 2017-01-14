@@ -48,7 +48,6 @@ class Item {
   }
 
   setLayout(layout) {
-    console.log(layout)
     this._attributes.layout = layout;
   }
 

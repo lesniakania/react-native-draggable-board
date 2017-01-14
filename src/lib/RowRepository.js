@@ -2,12 +2,12 @@
 
 import _ from 'underscore';
 import Registry from './Registry';
+import PositionCalculator from './PositionCalculator';
 
 class RowRepository {
-  TRESHOLD = 35
-
   constructor() {
     this.registry = new Registry();
+    this.positionCalculator = new PositionCalculator();
     this.listeners = {};
   }
 
@@ -104,82 +104,34 @@ class RowRepository {
 
   move(draggedItem, x, y) {
     const fromColumnId = draggedItem.columnId();
-    let columnAtPosition = this.columnAtPosition(x, y);
+    const columnAtPosition = this.positionCalculator.columnAtPosition(this.columns(), x, y);
     if (!columnAtPosition) {
       return;
     }
 
-    let toColumnId = columnAtPosition.id();
-    let itemAtPosition = this.itemAtPosition(toColumnId, x, y);
+    const toColumnId = columnAtPosition.id();
+    let items = this.visibleItems(toColumnId);
+    const itemAtPosition = this.positionCalculator.itemAtPosition(items, toColumnId, x, y);
     if (!itemAtPosition) {
       return columnAtPosition;
     }
 
-    let draggedId = draggedItem.id();
-    console.log(['DRAG FROM', x, y, draggedItem.columnId(), draggedItem._attributes.index, draggedItem.id(), draggedItem._attributes.row.title, draggedItem._attributes.layout])
-    if (toColumnId != fromColumnId) {
-      let fromColumn = this.registry.column(fromColumnId);
-      let toColumn = this.registry.column(toColumnId);
-
-      this.registry.move(fromColumn, toColumn, draggedItem);
-      this.notify(fromColumnId, 'reload');
-
-      draggedItem.setVisible(true);
-      draggedItem.setIndex(-1);
-      const items = this.items(toColumnId);
-      for (const item of items) {
-        item.setIndex(item.index() + 1);
-      }
-
-      const visibleItems = this.visibleItems(toColumnId);
-      // TODO: ten ostatni nie zawsze jest wypchniety!
-      // jak lista nie wychodzi poza ekran to nie jest!
-      //visibleItems[visibleItems.length - 1].visible = false;
-      let i = 0;
-      while (i < visibleItems.length - 1) {
-        visibleItems[i].setLayout(visibleItems[i + 1].layout());
-        i += 1;
-      }
-    }
-
-    let itemAtPositionId = itemAtPosition.id();
-    console.log(['DRAG TO', x, y, itemAtPosition.columnId(), itemAtPosition._attributes.index, itemAtPosition.id(), itemAtPosition._attributes.row.title, itemAtPosition.layout()])
+    const draggedId = draggedItem.id();
+    const itemAtPositionId = itemAtPosition.id();
 
     if (draggedItem.id() == itemAtPosition.id()) {
       return columnAtPosition;
     }
 
-    console.log('SWITCHING')
-    draggedItem.setVisible(true);
-    let items = this.visibleItems(toColumnId);
+    console.log(['DRAG FROM', x, y, draggedItem.columnId(), draggedItem._attributes.index, draggedItem.id(), draggedItem._attributes.row.title, draggedItem._attributes.layout])
 
-    console.log(['BEFORE TO', toColumnId, items.map((item) => [item._attributes.index, item._attributes.row.title, item.layout()])]);
-
-    let draggedItemI = _(items).findIndex((item) => item.id() == draggedItem.id());
-    let itemAtPositionI = _(items).findIndex((item) => item.id() == itemAtPosition.id());
-    if (draggedItem.index() < itemAtPosition.index()) {
-      let i = draggedItemI;
-      console.log(['draggedItem.index < itemAtPosition.index: i', i])
-      while(i < itemAtPositionI) {
-        let firstItem = items[i];
-        let secondItem = items[i + 1];
-        this.switchItems(toColumnId, firstItem, secondItem);
-        items = this.visibleItems(toColumnId);
-        i += 1;
-      }
-    } else {
-      let i = itemAtPositionI;
-      console.log(['draggedItem.index >= itemAtPosition.index: i', i])
-      while(i < draggedItemI) {
-        let firstItem = items[i];
-        let secondItem = items[i + 1];
-        this.switchItems(toColumnId, firstItem, secondItem);
-        items = this.visibleItems(toColumnId);
-        i += 1;
-      }
+    if (toColumnId != fromColumnId) {
+      this.moveToOtherColumn(fromColumnId, toColumnId, draggedItem);
     }
 
-    this.notify(toColumnId, 'reload');
+    console.log(['DRAG TO', x, y, itemAtPosition.columnId(), itemAtPosition._attributes.index, itemAtPosition.id(), itemAtPosition._attributes.row.title, itemAtPosition.layout()])
+
+    this.switchItemsBetween(draggedItem, itemAtPosition, toColumnId, items);
 
     const itemsFrom = this.visibleItems(fromColumnId)
     console.log(['AFTER FROM', fromColumnId, itemsFrom.map((item) => [item.index(), item._attributes.row.title, item.layout()])]);
@@ -187,6 +139,52 @@ class RowRepository {
     console.log(['AFTER TO', toColumnId, itemsTo.map((item) => [item.index(), item._attributes.row.title, item.layout()])]);
 
     return columnAtPosition;
+  }
+
+  moveToOtherColumn(fromColumnId, toColumnId, item) {
+    this.registry.move(fromColumnId, toColumnId, item);
+    this.notify(fromColumnId, 'reload');
+
+    item.setVisible(true);
+    item.setIndex(-1);
+    const items = this.items(toColumnId);
+    for (const item of items) {
+      item.setIndex(item.index() + 1);
+    }
+
+    const visibleItems = this.visibleItems(toColumnId);
+    // TODO: ten ostatni nie zawsze jest wypchniety!
+    // jak lista nie wychodzi poza ekran to nie jest!
+    //visibleItems[visibleItems.length - 1].visible = false;
+    let i = 0;
+    while (i < visibleItems.length - 1) {
+      visibleItems[i].setLayout(visibleItems[i + 1].layout());
+      i += 1;
+    }
+  }
+
+  switchItemsBetween(draggedItem, itemAtPosition, toColumnId, items) {
+    console.log('SWITCHING')
+    draggedItem.setVisible(true);
+
+    console.log(['BEFORE TO', toColumnId, items.map((item) => [item._attributes.index, item._attributes.row.title, item.layout()])]);
+
+    const draggedItemI = _(items).findIndex((item) => item.id() == draggedItem.id());
+    const itemAtPositionI = _(items).findIndex((item) => item.id() == itemAtPosition.id());
+    let range;
+    if (draggedItem.index() < itemAtPosition.index()) {
+      range = _.range(draggedItemI, itemAtPositionI);
+    } else {
+      range = _.range(itemAtPositionI, draggedItemI);
+    }
+
+    for (const i of range) {
+      const firstItem = items[i];
+      const secondItem = items[i + 1];
+      this.switchItems(toColumnId, firstItem, secondItem);
+      items = this.visibleItems(toColumnId);
+    }
+    this.notify(toColumnId, 'reload');
   }
 
   switchItems(columnId, firstItem, secondItem) {
@@ -211,64 +209,6 @@ class RowRepository {
 
     firstItem.setRef(secondRef);
     secondItem.setRef(firstRef);
-  }
-
-  columnAtPosition(x, y) {
-    let columns = this.columns();
-    let column = columns.find((column) => {
-      let layout = column.layout();
-
-      const left = x > layout.x;
-      const right = x < layout.x + layout.width;
-      const up = y > layout.y - this.TRESHOLD;
-      const down = y < layout.y + layout.height + this.TRESHOLD;
-
-      return layout && left && right && up && down;
-    });
-
-    return column;
-  }
-
-  scrollingPosition(column, x, y) {
-    let layout = column.layout();
-
-    let upperEnd = layout.y;
-    let upper = y > upperEnd - this.TRESHOLD && y < upperEnd + this.TRESHOLD;
-
-    let lowerEnd = layout.y + layout.height;
-    let lower = y > lowerEnd - this.TRESHOLD && y < lowerEnd + this.TRESHOLD;
-
-    let offset = lower ? 1 : (upper ? -1 : 0);
-
-    return {
-      offset: offset,
-      scrolling: x > layout.x && x < layout.x + layout.width && (lower || upper)
-    };
-  }
-
-  itemAtPosition(columnId, x, y) {
-    let items = this.visibleItems(columnId);
-
-    let item = items.find((item) => {
-      const layout = item.layout();
-      const left = x > layout.x;
-      const right = x < layout.x + layout.width;
-      const up = y < layout.y + layout.height;
-      const down = y > layout.y;
-      return layout && left && right && up && down;
-    });
-
-    let firstItem = items[0];
-    if (!item && firstItem && firstItem.layout() && y <= firstItem.layout().y) {
-      item = firstItem;
-    }
-
-    let lastItem = items[items.length - 1];
-    if (!item && lastItem && lastItem.layout() && y >= lastItem.layout().y) {
-      item = lastItem;
-    }
-
-    return item;
   }
 };
 

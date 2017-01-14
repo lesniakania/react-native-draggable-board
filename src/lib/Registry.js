@@ -60,7 +60,10 @@ class Registry {
     }
   }
 
-  move(fromColumn, toColumn, item) {
+  move(fromColumnId, toColumnId, item) {
+    const fromColumn = this.column(fromColumnId);
+    const toColumn = this.column(toColumnId);
+
     toColumn.setItem(item);
     fromColumn.removeItem(item);
   }
