@@ -1,3 +1,8 @@
-export function testFunction() {
-  console.log('Function from my first npm package');
+import Board from './src/components/Board'
+import RowRepository from './src/lib/RowRepository'
+
+export {
+  Board,
+  RowRepository
 };
+
