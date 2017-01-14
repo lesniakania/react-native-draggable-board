@@ -54,7 +54,7 @@ class Board extends React.Component {
       this.x = event.nativeEvent.pageX;
       this.y = event.nativeEvent.pageY;
       const columnAtPosition = this.props.rowRepository.move(draggedItem, this.x, this.y);
-      console.log(['MOVE', columnAtPosition && columnAtPosition.id]);
+      console.log(['MOVE', columnAtPosition && columnAtPosition.id()]);
       if (columnAtPosition) {
         //let { scrolling, offset } = this.props.rowRepository.scrollingPosition(columnAtPosition, this.x, this.y);
         //if (scrolling) {
@@ -85,11 +85,11 @@ class Board extends React.Component {
     console.log('SCROLLING!')
     if (!this.isScrolling()) {
       this.onScrollingStarted();
-      const scrollOffset = column.scrollOffset + 50 * anOffset;
-      this.props.rowRepository.setScrollOffset(column.id, scrollOffset);
+      const scrollOffset = column.scrollOffset() + 50 * anOffset;
+      this.props.rowRepository.setScrollOffset(column.id(), scrollOffset);
 
-      console.log(['SCROLL OFFSET', scrollOffset, column.id])
-      column.listView.scrollTo({ y: scrollOffset });
+      console.log(['SCROLL OFFSET', scrollOffset, column.id()])
+      column.listView().scrollTo({ y: scrollOffset });
     }
 
     this.props.rowRepository.move(draggedItem, this.x, this.y);
@@ -104,14 +104,13 @@ class Board extends React.Component {
   endMoving() {
     console.log('END MOVING')
     this.setState({ movingMode: false });
-    const { originalDraggedItem, draggedItem } = this.state;
+    const { srcColumnId, draggedItem } = this.state;
     const { rowRepository, onDragEnd } = this.props;
-    rowRepository.show(draggedItem.columnId, draggedItem);
-    rowRepository.notify(draggedItem.columnId, 'reload');
+    rowRepository.show(draggedItem.columnId(), draggedItem);
+    rowRepository.notify(draggedItem.columnId(), 'reload');
 
-    const srcColumn = rowRepository.column(originalDraggedItem.columnId).data;
-    const destColumn = rowRepository.column(draggedItem.columnId).data;
-    onDragEnd && onDragEnd(srcColumn, destColumn, originalDraggedItem, draggedItem);
+    const destColumnId = draggedItem.columnId();
+    onDragEnd && onDragEnd(srcColumnId, destColumnId, draggedItem);
   }
 
   onPanResponderRelease(e, gesture) {
@@ -156,13 +155,12 @@ class Board extends React.Component {
   onPressIn(columnId, item, columnCallback) {
     return () => {
       this.movingSubscription = this.props.setTimeout(() => {
-        const layout = this.props.rowRepository.getLayoutForItem(columnId, item);
-        const { x, y } = layout;
+        const { x, y } = item.layout();
         this.props.rowRepository.hide(columnId, item);
         this.setState({
           movingMode: true,
           draggedItem: item,
-          originalDraggedItem: _.clone(item),
+          srcColumnId: item.columnId(),
           startingX: x,
           startingY: y,
           x: x,
@@ -170,7 +168,7 @@ class Board extends React.Component {
         });
         columnCallback();
         this.rotate();
-        console.log(['ON PRESS IN', this.props.rowRepository.visibleItems(columnId).map((item) => [item.index, item.row.title, item.layout])])
+        console.log(['ON PRESS IN', this.props.rowRepository.visibleItems(columnId).map((item) => [item.index(), item.row().title, item.layout()])])
         this.unsubscribeFromMovingMode();
       }, 2000);
     }
@@ -179,7 +177,7 @@ class Board extends React.Component {
   onPress(item) {
     return () => {
       if (!this.state.movingMode) {
-        this.open(item.row);
+        this.open(item.row());
       } else {
         this.endMoving();
       }
@@ -215,7 +213,7 @@ class Board extends React.Component {
     const { renderRow } = this.props;
     return (
       <TaskWrapper {...data}>
-        {renderRow && renderRow(data.item.row)}
+        {renderRow && renderRow(data.item.row())}
       </TaskWrapper>
     );
   }
@@ -238,7 +236,7 @@ class Board extends React.Component {
           unsubscribeFromMovingMode={this.unsubscribeFromMovingMode.bind(this)}
         />
       );
-      return this.props.renderColumnWrapper(column.data, column.index, columnComponent);
+      return this.props.renderColumnWrapper(column.data(), column.index(), columnComponent);
     });
 
     // TODO: fix stop moving (because of no item behaviour)
@@ -275,7 +273,7 @@ class Column extends React.Component {
   }
 
   componentWillMount() {
-    this.props.rowRepository.addListener(this.props.column.id, 'reload', this.reload.bind(this));
+    this.props.rowRepository.addListener(this.props.column.id(), 'reload', this.reload.bind(this));
   }
 
   reload() {
@@ -292,7 +290,7 @@ class Column extends React.Component {
   }
 
   dataSource() {
-    let items = this.props.rowRepository.items(this.props.column.id);
+    let items = this.props.rowRepository.items(this.props.column.id());
     return this.dataSourceWithItems(items);
   }
 
@@ -300,40 +298,40 @@ class Column extends React.Component {
     let callback = () => {
       this.reload();
     };
-    return this.props.onPressIn(this.props.column.id, item, callback);
+    return this.props.onPressIn(this.props.column.id(), item, callback);
   }
 
   onPress(item) {
     return this.props.onPress(item);
   }
 
-  registerItem(item, ref) {
-    this.props.rowRepository.registerItem(this.props.column.id, item, ref);
+  setItemRef(item, ref) {
+    this.props.rowRepository.setItemRef(this.props.column.id(), item, ref);
   }
 
   updateItemWithLayout(item) {
     return () => {
-      this.props.rowRepository.updateItemWithLayout(this.props.column.id, item);
+      this.props.rowRepository.updateItemWithLayout(this.props.column.id(), item);
     }
   }
 
-  registerColumn(ref) {
-    this.props.rowRepository.registerColumn(this.props.column.id, ref);
+  setColumnRef(ref) {
+    this.props.rowRepository.setColumnRef(this.props.column.id(), ref);
   }
 
   updateColumnWithLayout() {
-    this.props.rowRepository.updateColumnWithLayout(this.props.column.id);
+    this.props.rowRepository.updateColumnWithLayout(this.props.column.id());
   }
 
   renderWrapperRow(item) {
     let props = {
       onPressIn: this.onPressIn(item),
       onPress: this.onPress(item),
-      hidden: item.hidden,
+      hidden: item.isHidden(),
       item: item
     };
     return (
-      <View ref={(ref) => this.registerItem(item, ref)} onLayout={this.updateItemWithLayout(item)}>
+      <View ref={(ref) => this.setItemRef(item, ref)} onLayout={this.updateItemWithLayout(item)}>
         {this.props.renderWrapperRow(props)}
       </View>
     );
@@ -349,7 +347,7 @@ class Column extends React.Component {
 
   endScrolling(event) {
     const currentOffset = event.nativeEvent.contentOffset.y;
-    const column = this.props.rowRepository.column(this.props.column.id);
+    const column = this.props.rowRepository.column(this.props.column.id());
     if (currentOffset >= column.scrollOffset) {
       this.props.onScrollingEnded();
     }
@@ -366,23 +364,23 @@ class Column extends React.Component {
   }
 
   handleChangeVisibleItems(visibleItems) {
-    console.log(['VISIBILITY CHANGED', this.props.column.id])
-    this.props.rowRepository.updateItemsVisibility(this.props.column.id, visibleItems);
+    console.log(['VISIBILITY CHANGED', this.props.column.id()])
+    this.props.rowRepository.updateItemsVisibility(this.props.column.id(), visibleItems);
   }
 
-  registerListView(ref) {
-    this.props.rowRepository.registerListView(this.props.column.id, ref);
+  setListView(ref) {
+    this.props.rowRepository.setListView(this.props.column.id(), ref);
   }
 
   render() {
     return (
       <View
         style={{ flex: 1 }}
-        ref={this.registerColumn.bind(this)}
+        ref={this.setColumnRef.bind(this)}
         onLayout={this.updateColumnWithLayout.bind(this)}>
         <ListView
           dataSource={this.dataSource()}
-          ref={this.registerListView.bind(this)}
+          ref={this.setListView.bind(this)}
           onScroll={this.handleScroll.bind(this)}
           onMomentumScrollEnd={this.onMomentumScrollEnd.bind(this)}
           onScrollEndDrag={this.onScrollEndDrag.bind(this)}

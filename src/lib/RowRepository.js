@@ -1,39 +1,30 @@
 'use strict';
 
 import _ from 'underscore';
+import Registry from './Registry';
 
 class RowRepository {
+  TRESHOLD = 35
+
   constructor() {
-    this.registry = {};
+    this.registry = new Registry();
     this.listeners = {};
   }
 
+  columns() {
+    return this.registry.columns();
+  }
+
+  items(columnId) {
+    return this.registry.items(columnId);
+  }
+
+  visibleItems(columnId) {
+    return this.registry.visibleItems(columnId);
+  }
+
   updateData(data) {
-    const columns = _.range(data.length).map((columnIndex) => {
-      const columnData = data[columnIndex];
-      const rows = columnData.rows;
-      const items = _.range(rows.length).map((index) => {
-        const row = rows[index];
-        return { id: row.id, index: index, columnId: columnIndex, row: row };
-      });
-      const existingColumn = this.registry[columnIndex] || {
-        id: columnIndex,
-        index: columnIndex,
-        scrollOffset: 0
-      };
-      const itemsMap = {};
-      for (const item of items) {
-        const existingItem = existingColumn.items[item.id] || {};
-        itemsMap[item.id] = Object.assign(existingItem, item);
-      }
-      return Object.assign(existingColumn, {
-        items: itemsMap,
-        data: columnData
-      });
-    });
-    for (const column of columns) {
-      this.registry[column.id] = column;
-    }
+    this.registry.updateData(data);
   }
 
   addListener(columnId, event, callback) {
@@ -47,38 +38,22 @@ class RowRepository {
     this.listeners[columnId][event]();
   }
 
-  column(columnId) {
-    return this.registry[columnId];
-  }
-
   setScrollOffset(columnId, scrollOffset) {
-    this.registry[columnId].scrollOffset = scrollOffset;
+    const column = this.registry.column(columnId);
+    column.setScrollOffset(scrollOffset);
   }
 
-  registerItem(columnId, item, ref) {
-    if (!this.registry[columnId].items[item.id]) {
-      return;
-    }
-    this.registry[columnId].items[item.id].ref = ref;
+  setItemRef(columnId, item, ref) {
+    item.setRef(ref);
   }
 
-  registerListView(columnId, listView) {
-    this.registry[columnId].listView = listView;
+  setListView(columnId, listView) {
+    const column = this.registry.column(columnId);
+    column && column.setListView(listView);
   }
 
   updateItemWithLayout(columnId, item, previousItem) {
-    let ref = this.registry[columnId].items[item.id].ref;
-    ref.measure((fx, fy, width, height, px, py) => {
-      const layout = { x: px, y: py, width: width, height: height };
-      this.registry[columnId].items[item.id].layout = layout;
-      if (!this.itemHeight) {
-        // TODO: make it just 70 or so
-        this.itemHeight = layout.height;
-      }
-      if (previousItem && previousItem.layout.y > layout.y) {
-        this.registry[columnId].items[item.id].visible = false;
-      }
-    });
+    item.measureAndSaveLayout(previousItem);
   }
 
   updateLayoutAfterVisibilityChanged(columnId) {
@@ -92,25 +67,22 @@ class RowRepository {
   updateItemsVisibility(columnId, visibleItemsInSections) {
     const visibleItems = visibleItemsInSections.s1;
     const items = this.items(columnId);
-    for(let item of items) {
+    for (let item of items) {
       if (visibleItems) {
-        item.visible = visibleItems[item.index];
+        item.setVisible(visibleItems[item.index()]);
       }
     }
     this.updateLayoutAfterVisibilityChanged(columnId);
   }
 
-  registerColumn(columnId, ref) {
-    this.registry[columnId].ref = ref;
+  setColumnRef(columnId, ref) {
+    const column = this.registry.column(columnId);
+    column && column.setRef(ref);
   }
 
   updateColumnWithLayout(columnId) {
-    let ref = this.registry[columnId].ref;
-    ref.measure((fx, fy, width, height, px, py) => {
-      const layout = { x: px, y: py, width: width, height: height };
-      this.registry[columnId].layout = layout;
-      console.log(['LAYOUT', layout])
-    });
+    const column = this.registry.column(columnId);
+    column && column.measureAndSaveLayout();
   }
 
   updateColumnsLayoutAfterVisibilityChanged() {
@@ -123,46 +95,40 @@ class RowRepository {
   }
 
   hide(columnId, item) {
-    this.registry[columnId].items[item.id].hidden = true;
+    item.setHidden(true);
   }
 
   show(columnId, item) {
-    this.registry[columnId].items[item.id].hidden = false;
+    item.setHidden(false);
   }
 
   move(draggedItem, x, y) {
-    const fromColumnId = draggedItem.columnId;
+    const fromColumnId = draggedItem.columnId();
     let columnAtPosition = this.columnAtPosition(x, y);
     if (!columnAtPosition) {
-      console.log('NO COLUMN :(')
       return;
     }
 
-    let toColumnId = columnAtPosition.id;
+    let toColumnId = columnAtPosition.id();
     let itemAtPosition = this.itemAtPosition(toColumnId, x, y);
     if (!itemAtPosition) {
-      console.log('NO ITEM! ;(')
       return columnAtPosition;
     }
 
-    let draggedId = draggedItem.id;
-    console.log(['DRAG FROM', x, y, draggedItem.columnId, draggedItem.index, draggedItem.id, draggedItem.row.title, draggedItem.layout])
+    let draggedId = draggedItem.id();
+    console.log(['DRAG FROM', x, y, draggedItem.columnId(), draggedItem._attributes.index, draggedItem.id(), draggedItem._attributes.row.title, draggedItem._attributes.layout])
     if (toColumnId != fromColumnId) {
-      let fromColumn = this.column(fromColumnId);
-      let toColumn = this.column(toColumnId);
+      let fromColumn = this.registry.column(fromColumnId);
+      let toColumn = this.registry.column(toColumnId);
 
-      const draggedId = draggedItem.id;
-      this.registry[toColumnId].items[draggedId] = draggedItem;
-      fromColumn.items = _(fromColumn.items).omit(draggedId);
+      this.registry.move(fromColumn, toColumn, draggedItem);
       this.notify(fromColumnId, 'reload');
 
-      draggedItem = this.registry[toColumnId].items[draggedId];
-      draggedItem.visible = true;
-      draggedItem.columnId = toColumnId;
-      draggedItem.index = -1;
+      draggedItem.setVisible(true);
+      draggedItem.setIndex(-1);
       const items = this.items(toColumnId);
       for (const item of items) {
-        item.index += 1;
+        item.setIndex(item.index() + 1);
       }
 
       const visibleItems = this.visibleItems(toColumnId);
@@ -171,27 +137,27 @@ class RowRepository {
       //visibleItems[visibleItems.length - 1].visible = false;
       let i = 0;
       while (i < visibleItems.length - 1) {
-        visibleItems[i].layout = visibleItems[i + 1].layout;
+        visibleItems[i].setLayout(visibleItems[i + 1].layout());
         i += 1;
       }
     }
 
-    let itemAtPositionId = itemAtPosition.id;
-    console.log(['DRAG TO', x, y, itemAtPosition.columnId, itemAtPosition.index, itemAtPosition.id, itemAtPosition.row.title, itemAtPosition.layout])
+    let itemAtPositionId = itemAtPosition.id();
+    console.log(['DRAG TO', x, y, itemAtPosition.columnId(), itemAtPosition._attributes.index, itemAtPosition.id(), itemAtPosition._attributes.row.title, itemAtPosition.layout()])
 
-    if (draggedItem.id == itemAtPosition.id) {
+    if (draggedItem.id() == itemAtPosition.id()) {
       return columnAtPosition;
     }
 
     console.log('SWITCHING')
-    draggedItem.visible = true;
+    draggedItem.setVisible(true);
     let items = this.visibleItems(toColumnId);
 
-    console.log(['BEFORE TO', toColumnId, items.map((item) => [item.index, item.row.title, item.layout])]);
+    console.log(['BEFORE TO', toColumnId, items.map((item) => [item._attributes.index, item._attributes.row.title, item.layout()])]);
 
-    let draggedItemI = _(items).findIndex((item) => item.id == draggedItem.id);
-    let itemAtPositionI = _(items).findIndex((item) => item.id == itemAtPosition.id);
-    if (draggedItem.index < itemAtPosition.index) {
+    let draggedItemI = _(items).findIndex((item) => item.id() == draggedItem.id());
+    let itemAtPositionI = _(items).findIndex((item) => item.id() == itemAtPosition.id());
+    if (draggedItem.index() < itemAtPosition.index()) {
       let i = draggedItemI;
       console.log(['draggedItem.index < itemAtPosition.index: i', i])
       while(i < itemAtPositionI) {
@@ -216,9 +182,9 @@ class RowRepository {
     this.notify(toColumnId, 'reload');
 
     const itemsFrom = this.visibleItems(fromColumnId)
-    console.log(['AFTER FROM', fromColumnId, itemsFrom.map((item) => [item.index, item.row.title, item.layout])]);
+    console.log(['AFTER FROM', fromColumnId, itemsFrom.map((item) => [item.index(), item._attributes.row.title, item.layout()])]);
     const itemsTo = this.visibleItems(toColumnId)
-    console.log(['AFTER TO', toColumnId, itemsTo.map((item) => [item.index, item.row.title, item.layout])]);
+    console.log(['AFTER TO', toColumnId, itemsTo.map((item) => [item.index(), item._attributes.row.title, item.layout()])]);
 
     return columnAtPosition;
   }
@@ -228,66 +194,49 @@ class RowRepository {
       return;
     }
 
-    let firstId = firstItem.id;
-    let secondId = secondItem.id;
-    let firstIndex = firstItem.index;
-    let secondIndex = secondItem.index;
-    let firstY = firstItem.layout.y;
-    let firstRef = firstItem.ref;
-    let secondRef = secondItem.ref;
+    let firstId = firstItem.id();
+    let secondId = secondItem.id();
+    let firstIndex = firstItem.index();
+    let secondIndex = secondItem.index();
+    let firstY = firstItem.layout().y;
+    let secondHeight = secondItem.layout().height;
+    let firstRef = firstItem.ref();
+    let secondRef = secondItem.ref();
 
-    this.registry[columnId].items[firstId].index = secondIndex;
-    this.registry[columnId].items[secondId].index = firstIndex;
-    this.registry[columnId].items[secondId].layout.y = firstY;
-    this.registry[columnId].items[firstId].layout.y = firstY + secondItem.layout.height;
-    this.registry[columnId].items[firstId].ref = secondRef;
-    this.registry[columnId].items[secondId].ref = firstRef;
-  }
+    firstItem.setIndex(secondIndex);
+    secondItem.setIndex(firstIndex);
 
-  columns() {
-    const columns = _(this.registry).values();
-    return _(columns).sortBy('index');
-  }
+    firstItem.setLayout(Object.assign(firstItem.layout(), { y: firstY + secondHeight }));
+    secondItem.setLayout(Object.assign(secondItem.layout(), { y: firstY }));
 
-  items(columnId) {
-    let items = _(this.registry[columnId].items).values();
-    return _(items).sortBy('index');
-  }
-
-  visibleItems(columnId) {
-    return _(this.items(columnId)).filter((item) => item.visible);
-  }
-
-  rows(columnId) {
-    return _(this.items(columnId)).map((item) => item.row);
-  }
-
-  visibleRows(columnId) {
-    return _(this.visibleItems(columnId)).map((item) => item.row);
+    firstItem.setRef(secondRef);
+    secondItem.setRef(firstRef);
   }
 
   columnAtPosition(x, y) {
     let columns = this.columns();
-
-    const threshold = this.itemHeight / 2;
-
     let column = columns.find((column) => {
-      let layout = column.layout;
-      return layout && x > layout.x && y > layout.y - threshold && x < layout.x + layout.width && y < layout.y + layout.height + threshold;
+      let layout = column.layout();
+
+      const left = x > layout.x;
+      const right = x < layout.x + layout.width;
+      const up = y > layout.y - this.TRESHOLD;
+      const down = y < layout.y + layout.height + this.TRESHOLD;
+
+      return layout && left && right && up && down;
     });
 
     return column;
   }
 
   scrollingPosition(column, x, y) {
-    let layout = column.layout;
-    const threshold = this.itemHeight / 2;
+    let layout = column.layout();
 
     let upperEnd = layout.y;
-    let upper = y > upperEnd - threshold && y < upperEnd + threshold;
+    let upper = y > upperEnd - this.TRESHOLD && y < upperEnd + this.TRESHOLD;
 
     let lowerEnd = layout.y + layout.height;
-    let lower = y > lowerEnd - threshold && y < lowerEnd + threshold;
+    let lower = y > lowerEnd - this.TRESHOLD && y < lowerEnd + this.TRESHOLD;
 
     let offset = lower ? 1 : (upper ? -1 : 0);
 
@@ -301,22 +250,25 @@ class RowRepository {
     let items = this.visibleItems(columnId);
 
     let item = items.find((item) => {
-      let layout = item.layout;
-      return layout && x > layout.x && y > layout.y && x < layout.x + layout.width && y < layout.y + layout.height;
+      const layout = item.layout();
+      const left = x > layout.x;
+      const right = x < layout.x + layout.width;
+      const up = y < layout.y + layout.height;
+      const down = y > layout.y;
+      return layout && left && right && up && down;
     });
+
     let firstItem = items[0];
-    if (!item && firstItem && firstItem.layout && y <= firstItem.layout.y) {
+    if (!item && firstItem && firstItem.layout() && y <= firstItem.layout().y) {
       item = firstItem;
     }
+
     let lastItem = items[items.length - 1];
-    if (!item && lastItem && lastItem.layout && y >= lastItem.layout.y) {
+    if (!item && lastItem && lastItem.layout() && y >= lastItem.layout().y) {
       item = lastItem;
     }
-    return item;
-  }
 
-  getLayoutForItem(columnId, item) {
-    return this.registry[columnId].items[item.id].layout;
+    return item;
   }
 };
 
