@@ -6,7 +6,76 @@ TODO: gif with demo
 
 # Usage
 
+First you need to build `RowRepository` with data:
+
+```js
+    const data = [
+      {
+        id: 1,
+        name: 'Column1',
+        rows: [
+      { id: 1, name: 'Item1' },
+      { id: 2, name: 'Item2' },
+      { id: 3, name: 'Item3' },
+      { id: 4, name: 'Item4' },
+      { id: 5, name: 'Item5' },
+      { id: 6, name: 'Item6' },
+      { id: 7, name: 'Item7' },
+      { id: 8, name: 'Item8' }
+    ]
+  },
+  {
+    id: 2,
+    name: 'Column2',
+    rows: [
+      { id: 9, name: 'Item9' },
+      { id: 10, name: 'Item10' }
+    ]
+  }
+];
+const rowRepository = new RowRepository(data);
+```
+
+If you need to fetch data asynchronously, you can initialize empty
+repository and update it with data later:
+
+```js
+const rowRepository = new RowRepository(data);
+rowRepository.updateData(data);
+```
+
+Then you can render the `Board`:
+
+```jsx
+  <Board
+    style={styles.board}
+    rowRepository={this.state.rowRepository}
+    renderRow={this.renderRow.bind(this)}
+    renderColumnWrapper={this.renderColumnWrapper.bind(this)}
+    open={this.onOpen.bind(this)}
+    onDragEnd={this.onDragEnd.bind(this)}
+  />
+```
+
+      Property      |       Type      |  Required | Description
+--------------------|-----------------|-----------|------------
+rowRepository       | `RowRepository` |    yes    | object that holds
+data
+renderRow           | `function`      |    yes    | function responsible
+for rendering row item
+renderColumnWrapper | `function`      |    no     | function responsible
+for rendering wrapper of the column if needed
+open                | `function`      |    no     | function invoked
+when item pressed
+onDragEnd           | `function`      |    no     | function invoked
+when drag is finished
+style               | `object`        |    no     | custom styles for the board `ScrollView`
+
+
 # Example
+
+TODO: update below link
+See [ReactNativeDraggableBoardExample]() for more details.
 
 # Licence
 
