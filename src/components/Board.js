@@ -166,7 +166,7 @@ class Board extends React.Component {
         });
         columnCallback();
         this.rotate();
-        console.log(['ON PRESS IN', this.props.rowRepository.visibleItems(columnId).map((item) => [item.index(), item.row().title, item.layout()])])
+        console.log(['ON PRESS IN', x, y, this.props.rowRepository.visibleItems(columnId).map((item) => [item.index(), item.row().name, item.layout()])])
         this.unsubscribeFromMovingMode();
       }, 2000);
     }

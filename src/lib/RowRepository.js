@@ -131,25 +131,32 @@ class RowRepository {
       return columnAtPosition;
     }
 
-    console.log(['DRAG FROM', x, y, draggedItem.columnId(), draggedItem._attributes.index, draggedItem.id(), draggedItem._attributes.row.title, draggedItem._attributes.layout])
+    console.log(['DRAG FROM', x, y, draggedItem.columnId(), draggedItem._attributes.index, draggedItem.id(), draggedItem._attributes.row.name, draggedItem._attributes.layout])
 
     if (toColumnId != fromColumnId) {
       this.moveToOtherColumn(fromColumnId, toColumnId, draggedItem);
     }
 
-    console.log(['DRAG TO', x, y, itemAtPosition.columnId(), itemAtPosition._attributes.index, itemAtPosition.id(), itemAtPosition._attributes.row.title, itemAtPosition.layout()])
+    console.log(['DRAG TO', x, y, itemAtPosition.columnId(), itemAtPosition._attributes.index, itemAtPosition.id(), itemAtPosition._attributes.row.name, itemAtPosition.layout()])
 
-    this.switchItemsBetween(draggedItem, itemAtPosition, toColumnId, items);
+    this.switchItemsBetween(draggedItem, itemAtPosition, toColumnId);
 
     const itemsFrom = this.visibleItems(fromColumnId)
-    console.log(['AFTER FROM', fromColumnId, itemsFrom.map((item) => [item.index(), item._attributes.row.title, item.layout()])]);
+    console.log(['AFTER FROM', fromColumnId, itemsFrom.map((item) => [item.index(), item._attributes.row.name, item.layout()])]);
     const itemsTo = this.visibleItems(toColumnId)
-    console.log(['AFTER TO', toColumnId, itemsTo.map((item) => [item.index(), item._attributes.row.title, item.layout()])]);
+    console.log(['AFTER TO', toColumnId, itemsTo.map((item) => [item.index(), item._attributes.row.name, item.layout()])]);
 
     return columnAtPosition;
   }
 
   moveToOtherColumn(fromColumnId, toColumnId, item) {
+    const fromItems = this.items(fromColumnId);
+    for (const i of _.range(fromItems.length - 1, item.index(), -1)) {
+      let fromItem = fromItems[i];
+      fromItem.setIndex(fromItem.index() - 1);
+      const newY = fromItems[i - 1].layout().y;
+      fromItem.setLayout(Object.assign(fromItem.layout(), { y: newY }));
+    }
     this.registry.move(fromColumnId, toColumnId, item);
     this.notify(fromColumnId, 'reload');
 
@@ -163,20 +170,23 @@ class RowRepository {
     const visibleItems = this.visibleItems(toColumnId);
     // TODO: ten ostatni nie zawsze jest wypchniety!
     // jak lista nie wychodzi poza ekran to nie jest!
-    //visibleItems[visibleItems.length - 1].visible = false;
-    let i = 0;
-    while (i < visibleItems.length - 1) {
-      visibleItems[i].setLayout(visibleItems[i + 1].layout());
-      i += 1;
+    //visibleItems[visibleItems.length - 1].setVisible(false);
+    for (const i of _.range(0, visibleItems.length - 1)) {
+      visibleItems[i].setLayout(Object.assign({}, visibleItems[i + 1].layout()));
     }
+    const lastItem = visibleItems[visibleItems.length - 1];
+    const lastLayout = lastItem.layout();
+    const newLastY = lastLayout.y + lastLayout.height;
+    lastItem.setLayout(Object.assign(lastLayout, { y: newLastY }));
   }
 
-  switchItemsBetween(draggedItem, itemAtPosition, toColumnId, items) {
+  switchItemsBetween(draggedItem, itemAtPosition, toColumnId) {
     console.log('SWITCHING')
     draggedItem.setVisible(true);
 
-    console.log(['BEFORE TO', toColumnId, items.map((item) => [item._attributes.index, item._attributes.row.title, item.layout()])]);
+    console.log(['BEFORE TO', toColumnId, this.visibleItems(toColumnId).map((item) => [item._attributes.index, item._attributes.row.name, item.layout()])]);
 
+    let items = this.visibleItems(toColumnId);
     const draggedItemI = _(items).findIndex((item) => item.id() == draggedItem.id());
     const itemAtPositionI = _(items).findIndex((item) => item.id() == itemAtPosition.id());
     let range;
