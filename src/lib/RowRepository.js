@@ -5,8 +5,8 @@ import Registry from './Registry';
 import PositionCalculator from './PositionCalculator';
 
 class RowRepository {
-  constructor() {
-    this.registry = new Registry();
+  constructor(data) {
+    this.registry = new Registry(data);
     this.positionCalculator = new PositionCalculator();
     this.listeners = {};
   }

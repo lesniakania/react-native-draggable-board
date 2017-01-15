@@ -3,8 +3,11 @@ import ColumnItem from './ColumnItem';
 import Item from './Item';
 
 class Registry {
-  constructor() {
+  constructor(data) {
     this.map = {};
+    if (data) {
+      this.updateData(data);
+    }
   }
 
   existingColumnAttributes(columnId) {
