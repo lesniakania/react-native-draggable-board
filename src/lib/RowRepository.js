@@ -15,6 +15,10 @@ class RowRepository {
     return this.registry.columns();
   }
 
+  column(columnId) {
+    return this.registry.column(columnId);
+  }
+
   items(columnId) {
     return this.registry.items(columnId);
   }
@@ -83,6 +87,10 @@ class RowRepository {
   updateColumnWithLayout(columnId) {
     const column = this.registry.column(columnId);
     column && column.measureAndSaveLayout();
+  }
+
+  scrollingPosition(columnAtPosition, x, y) {
+    return this.positionCalculator.scrollingPosition(columnAtPosition, x, y);
   }
 
   updateColumnsLayoutAfterVisibilityChanged() {

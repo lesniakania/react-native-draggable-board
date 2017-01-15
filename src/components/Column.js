@@ -90,7 +90,7 @@ class Column extends React.Component {
   endScrolling(event) {
     const currentOffset = event.nativeEvent.contentOffset.y;
     const column = this.props.rowRepository.column(this.props.column.id());
-    if (currentOffset >= column.scrollOffset) {
+    if (currentOffset >= column.scrollOffset()) {
       this.props.onScrollingEnded();
     }
   }

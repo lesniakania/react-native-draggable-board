@@ -54,10 +54,10 @@ class Board extends React.Component {
       const columnAtPosition = this.props.rowRepository.move(draggedItem, this.x, this.y);
       console.log(['MOVE', columnAtPosition && columnAtPosition.id()]);
       if (columnAtPosition) {
-        //let { scrolling, offset } = this.props.rowRepository.scrollingPosition(columnAtPosition, this.x, this.y);
-        //if (scrolling) {
-          //this.scroll(columnAtPosition, draggedItem, offset);
-        //}
+        let { scrolling, offset } = this.props.rowRepository.scrollingPosition(columnAtPosition, this.x, this.y);
+        if (scrolling) {
+          this.scroll(columnAtPosition, draggedItem, offset);
+        }
       }
 
       this.setState({
@@ -80,8 +80,8 @@ class Board extends React.Component {
   }
 
   scroll(column, draggedItem, anOffset) {
-    console.log('SCROLLING!')
     if (!this.isScrolling()) {
+      console.log('SCROLLING!')
       this.onScrollingStarted();
       const scrollOffset = column.scrollOffset() + 50 * anOffset;
       this.props.rowRepository.setScrollOffset(column.id(), scrollOffset);

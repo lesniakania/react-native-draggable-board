@@ -31,6 +31,10 @@ class ColumnItem {
     return _(this.items(columnId)).filter((item) => item.isVisible());
   }
 
+  scrollOffset() {
+    return this._attributes.scrollOffset;
+  }
+
   id() {
     return this._attributes.id;
   }
