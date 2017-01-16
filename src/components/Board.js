@@ -237,11 +237,8 @@ class Board extends React.Component {
       return this.props.renderColumnWrapper(column.data(), column.index(), columnComponent);
     });
 
-    // TODO: fix stop moving (because of no item behaviour)
-    // TODO: release when stop dragging
     // TODO: handle when you don't wait while pressing
-    // TODO: threshold when tasks are different size
-    // Don't scroll if nothing to scroll...
+    // issue to describe: Don't scroll if nothing to scroll...
 
     return (
       <ScrollView

@@ -33,13 +33,14 @@ class PositionCalculator {
     };
   }
 
-  itemAtPosition(items, columnId, x, y) {
+  itemAtPosition(items, columnId, x, y, draggedItem) {
     let item = items.find((item) => {
       const layout = item.layout();
+      const heightDiff = Math.abs(draggedItem.layout().height - layout.height);
       const left = x > layout.x;
       const right = x < layout.x + layout.width;
-      const up = y < layout.y + layout.height;
-      const down = y > layout.y;
+      const down = y < layout.y + layout.height - heightDiff;
+      const up = y > layout.y + heightDiff;
       return layout && left && right && up && down;
     });
 

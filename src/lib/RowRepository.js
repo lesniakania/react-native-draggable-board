@@ -119,7 +119,7 @@ class RowRepository {
 
     const toColumnId = columnAtPosition.id();
     let items = this.visibleItems(toColumnId);
-    const itemAtPosition = this.positionCalculator.itemAtPosition(items, toColumnId, x, y);
+    const itemAtPosition = this.positionCalculator.itemAtPosition(items, toColumnId, x, y, draggedItem);
     if (!itemAtPosition) {
       return columnAtPosition;
     }
