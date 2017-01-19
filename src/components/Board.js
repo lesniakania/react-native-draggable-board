@@ -44,7 +44,7 @@ class Board extends React.Component {
   }
 
   onPanResponderMove(event, gesture, callback) {
-    console.log('MOVE!!')
+    //console.log('MOVE!!')
     const leftTopCornerX = this.state.startingX + gesture.dx;
     const leftTopCornerY = this.state.startingY + gesture.dy;
     if (this.state.movingMode) {
@@ -166,9 +166,9 @@ class Board extends React.Component {
         });
         columnCallback();
         this.rotate();
-        console.log(['ON PRESS IN', x, y, this.props.rowRepository.visibleItems(columnId).map((item) => [item.index(), item.row().name, item.layout()])])
+        console.log(['ON PRESS IN', x, y, this.props.rowRepository.items(columnId).map((item) => [item.index(), item.row().name, item.layout()])])
         this.unsubscribeFromMovingMode();
-      }, 2000);
+      }, 500);
     }
   }
 
@@ -195,7 +195,7 @@ class Board extends React.Component {
     return Object.assign({}, {
       transform: [{rotate: interpolatedRotateAnimation}],
       position: 'absolute',
-      zIndex: 10,
+      zIndex: 1,
       top: this.state.y,
       left: this.verticalOffset + this.state.x
     });
@@ -203,7 +203,7 @@ class Board extends React.Component {
 
   movingTask() {
     const { draggedItem } = this.state;
-    const data = { item: draggedItem, style: this.movingStyle() };
+    const data = { item: draggedItem, hidden: !this.state.movingMode, style: this.movingStyle() };
     return this.renderWrapperRow(data);
   }
 
@@ -211,7 +211,7 @@ class Board extends React.Component {
     const { renderRow } = this.props;
     return (
       <TaskWrapper {...data}>
-        {renderRow && renderRow(data.item.row())}
+        {renderRow && data.item && renderRow(data.item.row())}
       </TaskWrapper>
     );
   }
@@ -237,8 +237,8 @@ class Board extends React.Component {
       return this.props.renderColumnWrapper(column.data(), column.index(), columnComponent);
     });
 
-    // TODO: handle when you don't wait while pressing
     // issue to describe: Don't scroll if nothing to scroll...
+    // issue to describe: When you start dragging second item to fast
 
     return (
       <ScrollView
@@ -249,7 +249,7 @@ class Board extends React.Component {
         horizontal={true}
         {...this.panResponder.panHandlers}
       >
-        {this.state.movingMode && this.movingTask()}
+        {this.movingTask()}
         {columnWrappers}
       </ScrollView>
     )
