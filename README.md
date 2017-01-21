@@ -59,16 +59,11 @@ Then you can render the `Board`:
 
       Property      |       Type      |  Required | Description
 --------------------|-----------------|-----------|------------
-rowRepository       | `RowRepository` |    yes    | object that holds
-data
-renderRow           | `function`      |    yes    | function responsible
-for rendering row item
-renderColumnWrapper | `function`      |    no     | function responsible
-for rendering wrapper of the column if needed
-open                | `function`      |    no     | function invoked
-when item pressed
-onDragEnd           | `function`      |    no     | function invoked
-when drag is finished
+rowRepository       | `RowRepository` |    yes    | object that holds data
+renderRow           | `function`      |    yes    | function responsible for rendering row item
+renderColumnWrapper | `function`      |    no     | function responsible for rendering wrapper of the column if needed
+open                | `function`      |    no     | function invoked when item pressed
+onDragEnd           | `function`      |    no     | function invoked when drag is finished
 style               | `object`        |    no     | custom styles for the board `ScrollView`
 
 
