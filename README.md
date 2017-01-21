@@ -2,8 +2,7 @@
 
 Scrollable board component with sortable columns and draggable rows.
 
-![Drag and drop demo](./drag-and-drop-demo.gif)
-![Drag and scroll demo](./drag-and-scroll-demo.gif)
+![Drag and drop demo](./drag-and-drop-demo.gif) ![Drag and scroll demo](./drag-and-scroll-demo.gif)
 
 # Usage
 
