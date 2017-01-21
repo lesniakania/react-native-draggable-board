@@ -61,7 +61,7 @@ class RowRepository {
   }
 
   updateLayoutAfterVisibilityChanged(columnId) {
-    const items = this.visibleItems(columnId);
+    const items = this.items(columnId);
     const range = _.range(items.length);
     for (let i of range) {
       this.updateItemWithLayout(columnId, items[i], items[i - 1]);
@@ -95,8 +95,8 @@ class RowRepository {
 
   updateColumnsLayoutAfterVisibilityChanged() {
     const columns = this.columns();
-    for(const column of columns) {
-      const columnId = column.id;
+    for (const column of columns) {
+      const columnId = column.id();
       this.updateColumnWithLayout(columnId);
       this.updateLayoutAfterVisibilityChanged(columnId);
     }

@@ -91,6 +91,7 @@ class Column extends React.Component {
     const currentOffset = event.nativeEvent.contentOffset.y;
     const column = this.props.rowRepository.column(this.props.column.id());
     if (currentOffset >= column.scrollOffset()) {
+      this.props.rowRepository.updateColumnsLayoutAfterVisibilityChanged();
       this.props.onScrollingEnded();
     }
   }
