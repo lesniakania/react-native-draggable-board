@@ -80,7 +80,6 @@ class Column extends React.Component {
   }
 
   handleScroll(event) {
-    console.log(['HANDLE SCROLL', event.nativeEvent])
     // Needed if simple scroll started, without moving mode
 
     this.props.unsubscribeFromMovingMode();
@@ -97,17 +96,14 @@ class Column extends React.Component {
   }
 
   onScrollEndDrag(event) {
-    console.log(['SCROLL DRAG ENDED', event.nativeEvent])
     this.endScrolling(event);
   }
 
   onMomentumScrollEnd(event) {
-    console.log(['SCROLL ENDED', event.nativeEvent])
     this.endScrolling(event);
   }
 
   handleChangeVisibleItems(visibleItems) {
-    console.log(['VISIBILITY CHANGED', this.props.column.id()])
     this.props.rowRepository.updateItemsVisibility(this.props.column.id(), visibleItems);
   }
 

@@ -10,7 +10,6 @@ class Mover {
     const columns = rowRepository.columns();
     const columnAtPosition = this.positionCalculator.columnAtPosition(columns, x, y);
     if (!columnAtPosition) {
-      console.log('NO COLUMN')
       return;
     }
 
@@ -18,7 +17,6 @@ class Mover {
     let items = rowRepository.visibleItems(toColumnId);
     const itemAtPosition = this.positionCalculator.itemAtPosition(items, toColumnId, x, y, draggedItem);
     if (!itemAtPosition) {
-      console.log('NO ITEM')
       return columnAtPosition;
     }
 
@@ -29,20 +27,14 @@ class Mover {
       return columnAtPosition;
     }
 
-    console.log(['DRAG FROM', x, y, draggedItem.columnId(), draggedItem._attributes.index, draggedItem.id(), draggedItem._attributes.row.name, draggedItem._attributes.layout])
-
     if (toColumnId != fromColumnId) {
       this.moveToOtherColumn(rowRepository, registry, fromColumnId, toColumnId, draggedItem);
     }
 
-    console.log(['DRAG TO', x, y, itemAtPosition.columnId(), itemAtPosition._attributes.index, itemAtPosition.id(), itemAtPosition._attributes.row.name, itemAtPosition.layout()])
-
     this.switchItemsBetween(rowRepository, draggedItem, itemAtPosition, toColumnId);
 
     const itemsFrom = rowRepository.visibleItems(fromColumnId)
-    console.log(['AFTER FROM', fromColumnId, itemsFrom.map((item) => [item.index(), item._attributes.row.name, item.layout()])]);
     const itemsTo = rowRepository.visibleItems(toColumnId)
-    console.log(['AFTER TO', toColumnId, itemsTo.map((item) => [item.index(), item._attributes.row.name, item.layout()])]);
 
     return columnAtPosition;
   }
@@ -76,10 +68,7 @@ class Mover {
   }
 
   switchItemsBetween(rowRepository, draggedItem, itemAtPosition, toColumnId) {
-    console.log('SWITCHING')
     draggedItem.setVisible(true);
-
-    console.log(['BEFORE TO', toColumnId, rowRepository.visibleItems(toColumnId).map((item) => [item._attributes.index, item._attributes.row.name, item.layout()])]);
 
     let items = rowRepository.visibleItems(toColumnId);
     const draggedItemI = _(items).findIndex((item) => item.id() == draggedItem.id());

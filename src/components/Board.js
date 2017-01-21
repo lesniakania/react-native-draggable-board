@@ -44,7 +44,6 @@ class Board extends React.Component {
   }
 
   onPanResponderMove(event, gesture, callback) {
-    //console.log('MOVE!!')
     const leftTopCornerX = this.state.startingX + gesture.dx;
     const leftTopCornerY = this.state.startingY + gesture.dy;
     if (this.state.movingMode) {
@@ -52,7 +51,6 @@ class Board extends React.Component {
       this.x = event.nativeEvent.pageX;
       this.y = event.nativeEvent.pageY;
       const columnAtPosition = this.props.rowRepository.move(draggedItem, this.x, this.y);
-      console.log(['MOVE', columnAtPosition && columnAtPosition.id()]);
       if (columnAtPosition) {
         let { scrolling, offset } = this.props.rowRepository.scrollingPosition(columnAtPosition, this.x, this.y);
         if (scrolling) {
@@ -81,12 +79,10 @@ class Board extends React.Component {
 
   scroll(column, draggedItem, anOffset) {
     if (!this.isScrolling()) {
-      console.log('SCROLLING!')
       this.onScrollingStarted();
       const scrollOffset = column.scrollOffset() + 50 * anOffset;
       this.props.rowRepository.setScrollOffset(column.id(), scrollOffset);
 
-      console.log(['SCROLL OFFSET', scrollOffset, column.id()])
       column.listView().scrollTo({ y: scrollOffset });
     }
 
@@ -100,7 +96,6 @@ class Board extends React.Component {
   }
 
   endMoving() {
-    console.log('END MOVING')
     this.setState({ movingMode: false });
     const { srcColumnId, draggedItem } = this.state;
     const { rowRepository, onDragEnd } = this.props;
@@ -112,7 +107,6 @@ class Board extends React.Component {
   }
 
   onPanResponderRelease(e, gesture) {
-    console.log('RELEASE')
     this.x = null;
     this.y = null;
     if (this.state.movingMode) {
@@ -166,7 +160,6 @@ class Board extends React.Component {
         });
         columnCallback();
         this.rotate();
-        console.log(['ON PRESS IN', x, y, this.props.rowRepository.items(columnId).map((item) => [item.index(), item.row().name, item.layout()])])
         this.unsubscribeFromMovingMode();
       }, 500);
     }
@@ -236,9 +229,6 @@ class Board extends React.Component {
       );
       return this.props.renderColumnWrapper(column.data(), column.index(), columnComponent);
     });
-
-    // issue to describe: Don't scroll if nothing to scroll...
-    // issue to describe: When you start dragging second item to fast
 
     return (
       <ScrollView
