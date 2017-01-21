@@ -168,9 +168,6 @@ class RowRepository {
     }
 
     const visibleItems = this.visibleItems(toColumnId);
-    // TODO: ten ostatni nie zawsze jest wypchniety!
-    // jak lista nie wychodzi poza ekran to nie jest!
-    //visibleItems[visibleItems.length - 1].setVisible(false);
     for (const i of _.range(0, visibleItems.length - 1)) {
       visibleItems[i].setLayout(Object.assign({}, visibleItems[i + 1].layout()));
     }
