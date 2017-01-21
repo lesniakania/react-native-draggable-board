@@ -3,11 +3,13 @@
 import _ from 'underscore';
 import Registry from './Registry';
 import PositionCalculator from './PositionCalculator';
+import Mover from './Mover';
 
 class RowRepository {
   constructor(data) {
     this.registry = new Registry(data);
     this.positionCalculator = new PositionCalculator();
+    this.mover = new Mover(this.positionCalculator);
     this.listeners = {};
   }
 
@@ -111,119 +113,7 @@ class RowRepository {
   }
 
   move(draggedItem, x, y) {
-    const fromColumnId = draggedItem.columnId();
-    const columnAtPosition = this.positionCalculator.columnAtPosition(this.columns(), x, y);
-    if (!columnAtPosition) {
-      return;
-    }
-
-    const toColumnId = columnAtPosition.id();
-    let items = this.visibleItems(toColumnId);
-    const itemAtPosition = this.positionCalculator.itemAtPosition(items, toColumnId, x, y, draggedItem);
-    if (!itemAtPosition) {
-      return columnAtPosition;
-    }
-
-    const draggedId = draggedItem.id();
-    const itemAtPositionId = itemAtPosition.id();
-
-    if (draggedItem.id() == itemAtPosition.id()) {
-      return columnAtPosition;
-    }
-
-    console.log(['DRAG FROM', x, y, draggedItem.columnId(), draggedItem._attributes.index, draggedItem.id(), draggedItem._attributes.row.name, draggedItem._attributes.layout])
-
-    if (toColumnId != fromColumnId) {
-      this.moveToOtherColumn(fromColumnId, toColumnId, draggedItem);
-    }
-
-    console.log(['DRAG TO', x, y, itemAtPosition.columnId(), itemAtPosition._attributes.index, itemAtPosition.id(), itemAtPosition._attributes.row.name, itemAtPosition.layout()])
-
-    this.switchItemsBetween(draggedItem, itemAtPosition, toColumnId);
-
-    const itemsFrom = this.visibleItems(fromColumnId)
-    console.log(['AFTER FROM', fromColumnId, itemsFrom.map((item) => [item.index(), item._attributes.row.name, item.layout()])]);
-    const itemsTo = this.visibleItems(toColumnId)
-    console.log(['AFTER TO', toColumnId, itemsTo.map((item) => [item.index(), item._attributes.row.name, item.layout()])]);
-
-    return columnAtPosition;
-  }
-
-  moveToOtherColumn(fromColumnId, toColumnId, item) {
-    const fromItems = this.items(fromColumnId);
-    for (const i of _.range(fromItems.length - 1, item.index(), -1)) {
-      let fromItem = fromItems[i];
-      fromItem.setIndex(fromItem.index() - 1);
-      const newY = fromItems[i - 1].layout().y;
-      fromItem.setLayout(Object.assign(fromItem.layout(), { y: newY }));
-    }
-    this.registry.move(fromColumnId, toColumnId, item);
-    this.notify(fromColumnId, 'reload');
-
-    item.setVisible(true);
-    item.setIndex(-1);
-    const items = this.items(toColumnId);
-    for (const item of items) {
-      item.setIndex(item.index() + 1);
-    }
-
-    const visibleItems = this.visibleItems(toColumnId);
-    for (const i of _.range(0, visibleItems.length - 1)) {
-      visibleItems[i].setLayout(Object.assign({}, visibleItems[i + 1].layout()));
-    }
-    const lastItem = visibleItems[visibleItems.length - 1];
-    const lastLayout = lastItem.layout();
-    const newLastY = lastLayout.y + lastLayout.height;
-    lastItem.setLayout(Object.assign(lastLayout, { y: newLastY }));
-  }
-
-  switchItemsBetween(draggedItem, itemAtPosition, toColumnId) {
-    console.log('SWITCHING')
-    draggedItem.setVisible(true);
-
-    console.log(['BEFORE TO', toColumnId, this.visibleItems(toColumnId).map((item) => [item._attributes.index, item._attributes.row.name, item.layout()])]);
-
-    let items = this.visibleItems(toColumnId);
-    const draggedItemI = _(items).findIndex((item) => item.id() == draggedItem.id());
-    const itemAtPositionI = _(items).findIndex((item) => item.id() == itemAtPosition.id());
-    let range;
-    if (draggedItem.index() < itemAtPosition.index()) {
-      range = _.range(draggedItemI, itemAtPositionI);
-    } else {
-      range = _.range(itemAtPositionI, draggedItemI);
-    }
-
-    for (const i of range) {
-      const firstItem = items[i];
-      const secondItem = items[i + 1];
-      this.switchItems(toColumnId, firstItem, secondItem);
-      items = this.visibleItems(toColumnId);
-    }
-    this.notify(toColumnId, 'reload');
-  }
-
-  switchItems(columnId, firstItem, secondItem) {
-    if (!firstItem || !secondItem) {
-      return;
-    }
-
-    let firstId = firstItem.id();
-    let secondId = secondItem.id();
-    let firstIndex = firstItem.index();
-    let secondIndex = secondItem.index();
-    let firstY = firstItem.layout().y;
-    let secondHeight = secondItem.layout().height;
-    let firstRef = firstItem.ref();
-    let secondRef = secondItem.ref();
-
-    firstItem.setIndex(secondIndex);
-    secondItem.setIndex(firstIndex);
-
-    firstItem.setLayout(Object.assign(firstItem.layout(), { y: firstY + secondHeight }));
-    secondItem.setLayout(Object.assign(secondItem.layout(), { y: firstY }));
-
-    firstItem.setRef(secondRef);
-    secondItem.setRef(firstRef);
+    return this.mover.move(this, this.registry, draggedItem, x, y);
   }
 };
 
