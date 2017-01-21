@@ -2,9 +2,13 @@
 
 Scrollable board component with sortable columns and draggable rows.
 
-![Drag and drop demo](./drag-and-drop-demo.gif) ![Drag and scroll demo](./drag-and-scroll-demo.gif)
+![Drag and drop demo](https://github.com/lesniakania/react-native-draggable-board/raw/master/drag-and-drop-demo.gif) ![Drag and scroll demo](https://github.com/lesniakania/react-native-draggable-board/raw/master/drag-and-scroll-demo.gif)
 
 # Usage
+
+Install library via `npm`
+
+`npm install react-native-draggable-board`
 
 First you need to build `RowRepository` with data:
 
