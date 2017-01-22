@@ -7,8 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
-    "underscore": "1.8.3",
-    "react-timeout": "1.0.0"
+    "underscore": "^1.8.3",
+    "react-native": "^0.40.0",
+    "react-timeout": "^1.0.0"
   },
   "keywords": [
     "draggable",
