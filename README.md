@@ -2,6 +2,9 @@
 
 Scrollable board component with sortable columns and draggable rows.
 
+**Disclaimer**: this is under development. Use at your own risk, see
+[issues](https://github.com/lesniakania/react-native-draggable-board/issues).
+
 ![Drag and drop demo](https://github.com/lesniakania/react-native-draggable-board/raw/master/drag-and-drop-demo.gif) ![Drag and scroll demo](https://github.com/lesniakania/react-native-draggable-board/raw/master/drag-and-scroll-demo.gif)
 
 # Usage
