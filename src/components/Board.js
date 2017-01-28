@@ -175,6 +175,10 @@ class Board extends React.Component {
     }
   }
 
+  onScroll() {
+    this.unsubscribeFromMovingMode();
+  }
+
   onScrollEnd(event) {
     this.props.rowRepository.updateColumnsLayoutAfterVisibilityChanged();
     this.verticalOffset = event.nativeEvent.contentOffset.x;
@@ -234,6 +238,7 @@ class Board extends React.Component {
       <ScrollView
         style={this.props.style}
         scrollEnabled={!this.state.movingMode}
+        onScroll={this.onScroll.bind(this)}
         onScrollEndDrag={this.onScrollEnd.bind(this)}
         onMomentumScrollEnd={this.onScrollEnd.bind(this)}
         horizontal={true}
