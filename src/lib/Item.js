@@ -65,7 +65,7 @@ class Item {
 
   measureAndSaveLayout(previousItem) {
     const ref = this.ref();
-    ref && ref.measure((fx, fy, width, height, px, py) => {
+    ref && ref.measure && ref.measure((fx, fy, width, height, px, py) => {
       const layout = { x: px, y: py, width: width, height: height };
       this.setLayout(layout);
       if (this.isVisible() === undefined) {
