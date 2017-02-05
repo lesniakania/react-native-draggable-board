@@ -72,7 +72,8 @@ class ColumnItem {
   }
 
   measureAndSaveLayout() {
-    this.ref().measure((fx, fy, width, height, px, py) => {
+    const ref = this.ref();
+    ref && ref.measure((fx, fy, width, height, px, py) => {
       const layout = { x: px, y: py, width: width, height: height };
       this.setLayout(layout);
     });
