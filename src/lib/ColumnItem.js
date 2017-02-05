@@ -80,7 +80,7 @@ class ColumnItem {
   }
 
   setItem(item) {
-    this._attributes.items[item.id] = item;
+    this._attributes.items[item.id()] = item;
     item.setColumnId(this.id());
   }
 
