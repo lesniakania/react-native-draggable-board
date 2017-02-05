@@ -33,9 +33,6 @@ class Mover {
 
     this.switchItemsBetween(rowRepository, draggedItem, itemAtPosition, toColumnId);
 
-    const itemsFrom = rowRepository.visibleItems(fromColumnId)
-    const itemsTo = rowRepository.visibleItems(toColumnId)
-
     return columnAtPosition;
   }
 
