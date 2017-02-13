@@ -14,6 +14,10 @@ class Mover {
     }
 
     const toColumnId = columnAtPosition.id();
+    if (toColumnId != fromColumnId) {
+      this.moveToOtherColumn(rowRepository, registry, fromColumnId, toColumnId, draggedItem);
+    }
+
     let items = rowRepository.visibleItems(toColumnId);
     const itemAtPosition = this.positionCalculator.itemAtPosition(items, toColumnId, x, y, draggedItem);
     if (!itemAtPosition) {
@@ -25,10 +29,6 @@ class Mover {
 
     if (draggedItem.id() == itemAtPosition.id()) {
       return columnAtPosition;
-    }
-
-    if (toColumnId != fromColumnId) {
-      this.moveToOtherColumn(rowRepository, registry, fromColumnId, toColumnId, draggedItem);
     }
 
     this.switchItemsBetween(rowRepository, draggedItem, itemAtPosition, toColumnId);
