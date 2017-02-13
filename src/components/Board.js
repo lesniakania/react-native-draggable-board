@@ -14,6 +14,7 @@ class Board extends React.Component {
   MAX_RANGE = 100
   MAX_DEG = 30
   MOVE_INTERVAL = 5
+  TRESHOLD = 35
 
   constructor(props) {
     super(props);
@@ -161,7 +162,7 @@ class Board extends React.Component {
         columnCallback();
         this.rotate();
         this.unsubscribeFromMovingMode();
-      }, 500);
+      }, 200);
     }
   }
 
@@ -193,7 +194,7 @@ class Board extends React.Component {
       transform: [{rotate: interpolatedRotateAnimation}],
       position: 'absolute',
       zIndex: 1,
-      top: this.state.y,
+      top: this.state.y - this.TRESHOLD,
       left: this.verticalOffset + this.state.x
     });
   }
