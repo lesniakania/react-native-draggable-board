@@ -185,7 +185,7 @@ class Board extends React.Component {
     this.verticalOffset = event.nativeEvent.contentOffset.x;
   }
 
-  movingStyle() {
+  movingStyle(zIndex) {
     var interpolatedRotateAnimation = this.state.rotate.interpolate({
       inputRange: [-this.MAX_RANGE, 0, this.MAX_RANGE],
       outputRange: [`-${this.MAX_DEG}deg`, '0deg', `${this.MAX_DEG}deg`]
@@ -193,15 +193,16 @@ class Board extends React.Component {
     return Object.assign({}, {
       transform: [{rotate: interpolatedRotateAnimation}],
       position: 'absolute',
-      zIndex: 1,
+      zIndex: zIndex,
       top: this.state.y - this.TRESHOLD,
       left: this.verticalOffset + this.state.x
     });
   }
 
   movingTask() {
-    const { draggedItem } = this.state;
-    const data = { item: draggedItem, hidden: !this.state.movingMode, style: this.movingStyle() };
+    const { draggedItem, movingMode } = this.state;
+    const zIndex = movingMode ? 1 : 0;
+    const data = { item: draggedItem, hidden: !movingMode, style: this.movingStyle(zIndex) };
     return this.renderWrapperRow(data);
   }
 
