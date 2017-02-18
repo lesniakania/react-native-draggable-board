@@ -13,7 +13,6 @@ import {
 class Board extends React.Component {
   MAX_RANGE = 100
   MAX_DEG = 30
-  MOVE_INTERVAL = 5
   TRESHOLD = 35
 
   constructor(props) {
@@ -112,7 +111,7 @@ class Board extends React.Component {
     this.y = null;
     if (this.state.movingMode) {
       this.rotateBack();
-      this.props.setTimeout(this.endMoving.bind(this), 1000);
+      this.props.setTimeout(this.endMoving.bind(this), 200);
     } else if (this.isScrolling()) {
       this.unsubscribeFromMovingMode();
     }
