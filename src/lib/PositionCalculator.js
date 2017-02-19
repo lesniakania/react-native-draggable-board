@@ -33,16 +33,29 @@ class PositionCalculator {
     };
   }
 
+  selectItem(x, y, draggedItem, item) {
+    const layout = item.layout();
+    const heightDiff = Math.abs(draggedItem.layout().height - layout.height);
+    const left = x > layout.x;
+    const right = x < layout.x + layout.width;
+    let up, down;
+    if (heightDiff > layout.height) {
+      up = y > layout.y;
+      down = y < layout.y + layout.height;
+    } else {
+      if (y < draggedItem.layout().y) {
+        down = y < layout.y + layout.height - heightDiff;
+        up = y > layout.y;
+      } else {
+        down = y < layout.y + layout.height;
+        up = y > layout.y + heightDiff;
+      }
+    }
+    return layout && left && right && up && down;
+  }
+
   itemAtPosition(items, columnId, x, y, draggedItem) {
-    let item = items.find((item) => {
-      const layout = item.layout();
-      const heightDiff = Math.abs(draggedItem.layout().height - layout.height);
-      const left = x > layout.x;
-      const right = x < layout.x + layout.width;
-      const down = y < layout.y + layout.height - heightDiff;
-      const up = y > layout.y + heightDiff;
-      return layout && left && right && up && down;
-    });
+    let item = items.find((item) => this.selectItem(x, y, draggedItem, item));
 
     let firstItem = items[0];
     if (!item && firstItem && firstItem.layout() && y <= firstItem.layout().y) {
