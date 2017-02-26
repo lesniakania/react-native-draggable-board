@@ -189,18 +189,20 @@ class Board extends React.Component {
       inputRange: [-this.MAX_RANGE, 0, this.MAX_RANGE],
       outputRange: [`-${this.MAX_DEG}deg`, '0deg', `${this.MAX_DEG}deg`]
     });
-    return Object.assign({}, {
+    return {
       transform: [{rotate: interpolatedRotateAnimation}],
       position: 'absolute',
       zIndex: zIndex,
       top: this.state.y - this.TRESHOLD,
       left: this.verticalOffset + this.state.x
-    });
+    };
   }
 
   movingTask() {
     const { draggedItem, movingMode } = this.state;
-    const zIndex = movingMode ? 1 : 0;
+    // Without this when you drop a task it's impossible to drag it again...
+    // And -1 is really needed for Android
+    const zIndex = movingMode ? 1 : -1;
     const data = { item: draggedItem, hidden: !movingMode, style: this.movingStyle(zIndex) };
     return this.renderWrapperRow(data);
   }
