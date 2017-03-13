@@ -14,11 +14,6 @@ class ColumnItem {
     return this._attributes.items[itemId];
   }
 
-  existingItemAttributes() {
-    const item = this.item(item.id)
-    return item && item.attributes();
-  }
-
   data() {
     return this._attributes.data;
   }
