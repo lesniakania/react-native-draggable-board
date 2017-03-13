@@ -90,8 +90,9 @@ class Column extends React.Component {
     const currentOffset = event.nativeEvent.contentOffset.y;
     const column = this.props.rowRepository.column(this.props.column.id());
     if (currentOffset >= column.scrollOffset()) {
+      this.props.rowRepository.setScrollOffset(column.id(), currentOffset);
       this.props.rowRepository.updateColumnsLayoutAfterVisibilityChanged();
-      this.props.onScrollingEnded();
+      this.props.onScrollingEnded(currentOffset);
     }
   }
 
@@ -101,6 +102,10 @@ class Column extends React.Component {
 
   onMomentumScrollEnd(event) {
     this.endScrolling(event);
+  }
+
+  onContentSizeChange(_, contentHeight) {
+    this.props.rowRepository.setContentHeight(this.props.column.id(), contentHeight);
   }
 
   handleChangeVisibleItems(visibleItems) {
@@ -126,6 +131,7 @@ class Column extends React.Component {
           onChangeVisibleRows={this.handleChangeVisibleItems.bind(this)}
           renderRow={this.renderWrapperRow.bind(this)}
           scrollEnabled={!this.props.movingMode}
+          onContentSizeChange={this.onContentSizeChange.bind(this)}
           enableEmptySections={true}
          />
       </View>

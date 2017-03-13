@@ -49,6 +49,11 @@ class RowRepository {
     column.setScrollOffset(scrollOffset);
   }
 
+  setContentHeight(columnId, contentHeight) {
+    const column = this.registry.column(columnId);
+    column.setContentHeight(contentHeight);
+  }
+
   setItemRef(columnId, item, ref) {
     item.setRef(ref);
   }

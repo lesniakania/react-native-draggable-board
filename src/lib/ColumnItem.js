@@ -41,6 +41,10 @@ class ColumnItem {
     return this._attributes.scrollOffset;
   }
 
+  contentHeight() {
+    return this._attributes.contentHeight;
+  }
+
   id() {
     return this._attributes.id;
   }
@@ -67,6 +71,10 @@ class ColumnItem {
 
   setScrollOffset(scrollOffset) {
     this._attributes.scrollOffset = scrollOffset;
+  }
+
+  setContentHeight(contentHeight) {
+    this._attributes.contentHeight = contentHeight;
   }
 
   setRef(ref) {
