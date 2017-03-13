@@ -145,6 +145,9 @@ class Board extends React.Component {
   }
 
   onPressIn(columnId, item, columnCallback) {
+    if (item.isLocked()) {
+      return;
+    }
     return () => {
       this.movingSubscription = this.props.setTimeout(() => {
         const { x, y } = item.layout();
@@ -166,6 +169,9 @@ class Board extends React.Component {
   }
 
   onPress(item) {
+    if (item.isLocked()) {
+      return;
+    }
     return () => {
       if (!this.state.movingMode) {
         this.open(item.row());

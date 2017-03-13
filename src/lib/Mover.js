@@ -38,7 +38,9 @@ class Mover {
 
   moveToOtherColumn(rowRepository, registry, fromColumnId, toColumnId, item) {
     const fromItems = rowRepository.items(fromColumnId);
-    for (const i of _.range(fromItems.length - 1, item.index(), -1)) {
+    // -2 is because last task is fake task added because of the bug:
+    // https://github.com/facebook/react-native/issues/12014
+    for (const i of _.range(fromItems.length - 2, item.index(), -1)) {
       let fromItem = fromItems[i];
       fromItem.setIndex(fromItem.index() - 1);
       const newY = fromItems[i - 1].layout().y;

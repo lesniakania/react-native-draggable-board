@@ -1,4 +1,5 @@
 import _ from 'underscore';
+import Item from './Item.js';
 
 class ColumnItem {
   constructor(attributes) {
@@ -24,7 +25,17 @@ class ColumnItem {
 
   items() {
     let items = _(this._attributes.items).values();
-    return _(items).sortBy((item) => item.index());
+    // fake task is added as last because of the bug:
+    // https://github.com/facebook/react-native/issues/12014
+    const fake = new Item({
+      id: -2,
+      index: 100000,
+      columnId: this.id(),
+      row: { id: -2 },
+      hidden: true,
+      locked: true
+    });
+    return _(items).sortBy((item) => item.index()).concat([fake]);
   }
 
   visibleItems(columnId) {

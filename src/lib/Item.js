@@ -39,6 +39,10 @@ class Item {
     return this._attributes.hidden;
   }
 
+  isLocked() {
+    return this._attributes.locked;
+  }
+
   setHidden(hidden) {
     this._attributes.hidden = hidden;
   }
