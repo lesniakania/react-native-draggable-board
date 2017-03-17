@@ -1,6 +1,6 @@
 {
   "name": "react-native-draggable-board",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "description": "Draggable items in columns in srollable board",
   "main": "index.js",
   "scripts": {
