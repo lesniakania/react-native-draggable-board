@@ -117,6 +117,16 @@ class RowRepository {
     item.setHidden(false);
   }
 
+  showAll() {
+    const columns = this.columns();
+    for (const column of columns) {
+      const items = this.items(column.id());
+      for (const item of items) {
+        this.show(column.id(), item);
+      }
+    }
+  }
+
   move(draggedItem, x, y) {
     return this.mover.move(this, this.registry, draggedItem, x, y);
   }

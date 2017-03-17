@@ -146,13 +146,24 @@ class Board extends React.Component {
 
   unsubscribeFromMovingMode() {
     this.props.clearTimeout(this.movingSubscription);
+
+    this.rotateBack();
+    this.setState({
+      movingMode: false,
+      startingX: 0,
+      startingY: 0,
+      x: 0,
+      y: 0,
+    });
+    this.props.rowRepository.showAll();
   }
 
   onPressIn(columnId, item, columnCallback) {
-    if (item.isLocked()) {
-      return;
-    }
     return () => {
+      if (item.isLocked()) {
+        this.unsubscribeFromMovingMode();
+        return;
+      }
       this.movingSubscription = this.props.setTimeout(() => {
         const { x, y } = item.layout();
         this.props.rowRepository.hide(columnId, item);
@@ -167,18 +178,18 @@ class Board extends React.Component {
         });
         columnCallback();
         this.rotate();
-        this.unsubscribeFromMovingMode();
       }, 200);
     }
   }
 
   onPress(item) {
-    this.unsubscribeFromMovingMode();
-
-    if (item.isLocked()) {
-      return;
-    }
     return () => {
+      this.unsubscribeFromMovingMode();
+
+      if (item.isLocked()) {
+        return;
+      }
+
       if (!this.state.movingMode) {
         this.open(item.row());
       } else {
