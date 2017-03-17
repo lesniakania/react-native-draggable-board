@@ -141,7 +141,6 @@ class Board extends React.Component {
   }
 
   open(row) {
-    this.unsubscribeFromMovingMode();
     this.props.open(row);
   }
 
@@ -174,6 +173,8 @@ class Board extends React.Component {
   }
 
   onPress(item) {
+    this.unsubscribeFromMovingMode();
+
     if (item.isLocked()) {
       return;
     }
