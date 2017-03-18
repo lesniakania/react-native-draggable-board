@@ -92,7 +92,7 @@ class Column extends React.Component {
     if (currentOffset >= column.scrollOffset()) {
       this.props.rowRepository.setScrollOffset(column.id(), currentOffset);
       this.props.rowRepository.updateColumnsLayoutAfterVisibilityChanged();
-      this.props.onScrollingEnded(currentOffset);
+      this.props.onScrollingEnded();
     }
   }
 
@@ -102,6 +102,7 @@ class Column extends React.Component {
 
   onMomentumScrollEnd(event) {
     this.endScrolling(event);
+    this.props.onScrollingEnded();
   }
 
   onContentSizeChange(_, contentHeight) {
@@ -126,6 +127,7 @@ class Column extends React.Component {
           dataSource={this.dataSource()}
           ref={this.setListView.bind(this)}
           onScroll={this.handleScroll.bind(this)}
+          scrollEventThrottle={0}
           onMomentumScrollEnd={this.onMomentumScrollEnd.bind(this)}
           onScrollEndDrag={this.onScrollEndDrag.bind(this)}
           onChangeVisibleRows={this.handleChangeVisibleItems.bind(this)}

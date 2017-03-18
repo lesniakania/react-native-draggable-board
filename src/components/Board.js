@@ -67,6 +67,7 @@ class Board extends React.Component {
 
   shouldScroll(scrolling, offset, column) {
     const placeToScroll = ((offset < 0 && column.scrollOffset() > 0) || (offset > 0 && column.scrollOffset() < column.contentHeight()));
+
     return scrolling && offset != 0 && placeToScroll;
   }
 
@@ -85,7 +86,7 @@ class Board extends React.Component {
   scroll(column, draggedItem, anOffset) {
     if (!this.isScrolling()) {
       this.onScrollingStarted();
-      const scrollOffset = column.scrollOffset() + 50 * anOffset;
+      const scrollOffset = column.scrollOffset() + 200 * anOffset;
       this.props.rowRepository.setScrollOffset(column.id(), scrollOffset);
 
       column.listView().scrollTo({ y: scrollOffset });
@@ -94,9 +95,9 @@ class Board extends React.Component {
     this.props.rowRepository.move(draggedItem, this.x, this.y);
     let { scrolling, offset } = this.props.rowRepository.scrollingPosition(column, this.x, this.y);
     if (this.shouldScroll(scrolling, offset, column)) {
-      this.props.setTimeout(() => {
+      this.props.requestAnimationFrame(() => {
         this.scroll(column, draggedItem, offset);
-      }, 1000);
+      });
     }
   }
 
@@ -144,23 +145,17 @@ class Board extends React.Component {
     this.props.open(row);
   }
 
-  unsubscribeFromMovingMode() {
+  cancelMovingSubscription() {
     this.props.clearTimeout(this.movingSubscription);
+  }
 
-    this.rotateBack();
-    this.setState({
-      movingMode: false,
-      startingX: 0,
-      startingY: 0,
-      x: 0,
-      y: 0,
-    });
-    this.props.rowRepository.showAll();
+  unsubscribeFromMovingMode() {
+    this.cancelMovingSubscription();
   }
 
   onPressIn(columnId, item, columnCallback) {
     return () => {
-      if (item.isLocked()) {
+      if (item.isLocked() && this.isScrolling()) {
         this.unsubscribeFromMovingMode();
         return;
       }
@@ -199,7 +194,7 @@ class Board extends React.Component {
   }
 
   onScroll() {
-    this.unsubscribeFromMovingMode();
+    this.cancelMovingSubscription();
   }
 
   onScrollEnd(event) {
@@ -254,7 +249,7 @@ class Board extends React.Component {
           renderWrapperRow={this.renderWrapperRow.bind(this)}
           onScrollingStarted={this.onScrollingStarted.bind(this)}
           onScrollingEnded={this.onScrollingEnded.bind(this)}
-          unsubscribeFromMovingMode={this.unsubscribeFromMovingMode.bind(this)}
+          unsubscribeFromMovingMode={this.cancelMovingSubscription.bind(this)}
         />
       );
       return this.props.renderColumnWrapper(column.data(), column.index(), columnComponent);
