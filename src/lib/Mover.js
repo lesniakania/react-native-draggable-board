@@ -87,6 +87,7 @@ class Mover {
       const firstItem = items[i];
       const secondItem = items[i + 1];
       this.switchItems(toColumnId, firstItem, secondItem);
+      items = rowRepository.visibleItems(toColumnId);
     }
 
     rowRepository.notify(toColumnId, 'reload');
