@@ -155,11 +155,14 @@ class Board extends React.Component {
 
   onPressIn(columnId, item, columnCallback) {
     return () => {
-      if (item.isLocked() && this.isScrolling()) {
+      if (!item || (item.isLocked() && this.isScrolling())) {
         this.unsubscribeFromMovingMode();
         return;
       }
       this.movingSubscription = this.props.setTimeout(() => {
+        if (!item || !item.layout()) {
+          return;
+        }
         const { x, y } = item.layout();
         this.props.rowRepository.hide(columnId, item);
         this.setState({
