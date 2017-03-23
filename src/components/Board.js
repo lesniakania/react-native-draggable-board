@@ -86,7 +86,7 @@ class Board extends React.Component {
   scroll(column, draggedItem, anOffset) {
     if (!this.isScrolling()) {
       this.onScrollingStarted();
-      const scrollOffset = column.scrollOffset() + 200 * anOffset;
+      const scrollOffset = column.scrollOffset() + 70 * anOffset;
       this.props.rowRepository.setScrollOffset(column.id(), scrollOffset);
 
       column.listView().scrollTo({ y: scrollOffset });
