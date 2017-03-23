@@ -154,6 +154,9 @@ class Board extends React.Component {
   }
 
   onPressIn(columnId, item, columnCallback) {
+    if (item.isLocked()) {
+      return;
+    }
     return () => {
       if (!item || (item.isLocked() && this.isScrolling())) {
         this.unsubscribeFromMovingMode();
@@ -181,6 +184,10 @@ class Board extends React.Component {
   }
 
   onPress(item) {
+    if (item.isLocked()) {
+      return;
+    }
+
     return () => {
       this.unsubscribeFromMovingMode();
 
