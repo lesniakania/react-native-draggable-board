@@ -28,7 +28,8 @@ class ColumnItem {
       columnId: this.id(),
       row: { id: -2 },
       hidden: true,
-      locked: true
+      locked: true,
+      visible: false
     });
     return _(items).sortBy((item) => item.index()).concat([fake]);
   }
@@ -100,6 +101,15 @@ class ColumnItem {
 
   removeItem(item) {
     this._attributes.items = _(this._attributes.items).omit(item.id());
+  }
+
+  updateLastItemVisibility() {
+    const visibleItems = this.visibleItems();
+    const items = this.items();
+    // + 1 is for the fake one
+    if (visibleItems.length + 1 < items.length) {
+      visibleItems[visibleItems.length - 1].setVisible(false);
+    }
   }
 };
 

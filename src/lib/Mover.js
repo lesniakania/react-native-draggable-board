@@ -65,6 +65,9 @@ class Mover {
     const lastLayout = lastItem.layout();
     const newLastY = lastLayout.y + lastLayout.height;
     lastItem.setLayout(Object.assign(lastLayout, { y: newLastY }));
+
+    const column = registry.column(toColumnId);
+    column.updateLastItemVisibility();
   }
 
   switchItemsBetween(rowRepository, draggedItem, itemAtPosition, toColumnId) {
@@ -84,14 +87,6 @@ class Mover {
       const firstItem = items[i];
       const secondItem = items[i + 1];
       this.switchItems(toColumnId, firstItem, secondItem);
-      items = rowRepository.visibleItems(toColumnId);
-    }
-
-    // When some items are not visible, last visible needs to become not visible
-    const lastItem = items[items.length - 1];
-    const preLastItem = items[items.length - 2];
-    if (preLastItem && lastItem && preLastItem.layout().y > lastItem.layout().y) {
-      lastItem.setVisible(false);
     }
 
     rowRepository.notify(toColumnId, 'reload');
