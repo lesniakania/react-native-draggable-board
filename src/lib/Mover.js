@@ -43,8 +43,9 @@ class Mover {
     for (const i of _.range(fromItems.length - 2, item.index(), -1)) {
       let fromItem = fromItems[i];
       fromItem.setIndex(fromItem.index() - 1);
+      const newX = fromItems[i - 1].layout().x;
       const newY = fromItems[i - 1].layout().y;
-      fromItem.setLayout(Object.assign(fromItem.layout(), { y: newY }));
+      fromItem.setLayout(Object.assign(fromItem.layout(), { x: newX, y: newY }));
     }
     registry.move(fromColumnId, toColumnId, item);
     rowRepository.notify(fromColumnId, 'reload');
@@ -85,6 +86,14 @@ class Mover {
       this.switchItems(toColumnId, firstItem, secondItem);
       items = rowRepository.visibleItems(toColumnId);
     }
+
+    // When some items are not visible, last visible needs to become not visible
+    const lastItem = items[items.length - 1];
+    const preLastItem = items[items.length - 2];
+    if (preLastItem && lastItem && preLastItem.layout().y > lastItem.layout().y) {
+      lastItem.setVisible(false);
+    }
+
     rowRepository.notify(toColumnId, 'reload');
   }
 
