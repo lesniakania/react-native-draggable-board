@@ -274,7 +274,6 @@ class Board extends React.Component {
         onMomentumScrollEnd={this.onScrollEnd.bind(this)}
         horizontal={true}
         {...this.panResponder.panHandlers}
-        {...this.props}
       >
         {this.movingTask()}
         {columnWrappers}
