@@ -110,6 +110,9 @@ class Column extends React.Component {
   }
 
   handleChangeVisibleItems(visibleItems) {
+    // FYI: This is not invoken on Android.
+    // I know it's document, but it just don't work
+    // There is product pain and issue for that but they seems to ignore this fact
     this.props.rowRepository.updateItemsVisibility(this.props.column.id(), visibleItems);
   }
 
