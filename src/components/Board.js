@@ -7,7 +7,8 @@ import TaskWrapper from './TaskWrapper';
 import {
   PanResponder,
   Animated,
-  ScrollView
+  ScrollView,
+  Platform
 } from 'react-native';
 
 class Board extends React.Component {
@@ -179,8 +180,12 @@ class Board extends React.Component {
         });
         columnCallback();
         this.rotate();
-      }, 200);
+      }, this.longPressDuration());
     }
+  }
+
+  longPressDuration() {
+    return (Platform.OS === 'ios') ? 200 : 400;
   }
 
   onPress(item) {
