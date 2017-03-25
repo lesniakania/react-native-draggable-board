@@ -84,12 +84,18 @@ class Column extends React.Component {
 
     this.props.unsubscribeFromMovingMode();
     this.props.onScrollingStarted();
+
+    const column = this.props.rowRepository.column(this.props.column.id());
+    const liveOffset = event.nativeEvent.contentOffset.y;
+    this.scrollingDown = liveOffset > column.scrollOffset();
   }
 
   endScrolling(event) {
     const currentOffset = event.nativeEvent.contentOffset.y;
     const column = this.props.rowRepository.column(this.props.column.id());
-    if (currentOffset >= column.scrollOffset()) {
+    const scrollingDownEnded = this.scrollingDown && currentOffset >= column.scrollOffset();
+    const scrollingUpEnded = !this.scrollingDown && currentOffset <= column.scrollOffset();
+    if (scrollingDownEnded || scrollingUpEnded) {
       this.props.rowRepository.setScrollOffset(column.id(), currentOffset);
       this.props.rowRepository.updateColumnsLayoutAfterVisibilityChanged();
       this.props.onScrollingEnded();
