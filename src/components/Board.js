@@ -273,6 +273,7 @@ class Board extends React.Component {
     return (
       <ScrollView
         style={this.props.style}
+        contentContainerStyle={this.props.contentContainerStyle}
         scrollEnabled={!this.state.movingMode}
         onScroll={this.onScroll.bind(this)}
         onScrollEndDrag={this.onScrollEnd.bind(this)}
