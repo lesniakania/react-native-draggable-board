@@ -1,3 +1,5 @@
+⚠️Warning!⚠️ This repository is no longer supported. Use it on your own risk.
+
 # React Native Draggable Board
 
 Scrollable board component with sortable columns and draggable rows.
