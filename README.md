@@ -1,4 +1,4 @@
-**⚠️Warning! This repository is no longer supported. Use it on your own risk.**⚠️
+⚠️**Warning! This repository is no longer supported. Use it on your own risk.**⚠️
 
 # React Native Draggable Board
 
